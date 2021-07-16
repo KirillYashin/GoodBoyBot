@@ -1,4 +1,4 @@
-You need to download some IR models from OpenVINO open models zoo with this commands:
+If you need to download some IR models from OpenVINO open models zoo you can use this commands:
 
 Prepairing to use OpenVINO:
 !Every time while use a new cmd or unix terminal window!
