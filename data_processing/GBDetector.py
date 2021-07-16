@@ -154,6 +154,7 @@ def main():
     cap = open_images_capture(args.input, True)
     Dogs = []
     Cats = []
+    detection_start = time()
     if 'yolo' in args.model:
         # Initialize OpenVINO
         ie = IECore()
@@ -179,12 +180,17 @@ def main():
     # Get list of detections in the image
     if results:
         Dogs, Cats = yolo_detection(img, results, args.prob_threshold)
+        detection_end = time()
         cv2.imshow('Original', img)
         classification_start = time()
         result = list_classifier(Dogs)
+    else:
+        detection_end = time()
+        classification_start = time()
     end = time()
 
     # Time usage
+    log.info("Detection time: {} sec".format(int((detection_end - detection_start)*100)/100))
     log.info("Classification time: {} sec".format(int((end - classification_start)*100)/100))
     log.info("Usage time: {} sec".format(int((end - start)*100)/100))
     cv2.waitKey(0)
