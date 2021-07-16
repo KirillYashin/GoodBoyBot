@@ -1,0 +1,17 @@
+You need to download some IR models from OpenVINO open models zoo with this commands:
+
+Prepairing to use OpenVINO:
+!Every time while use a new cmd or unix terminal window!
+<openvino_installation_dir>\openvino_2021\bin\setupvars.bat
+
+Downloading models:
+
+<openvino_installation_dir>\openvino_2021\deployment_tools\tools\model_downloader>python downloader.py --name resnet-50-tf -o <GoodBoyBot_cloning_dir>\GoodBoyBot\models
+
+<openvino_installation_dir>\openvino_2021\deployment_tools\tools\model_downloader>python downloader.py --name mobilenet-v2-pytorch -o <GoodBoyBot_cloning_dir>\GoodBoyBot\models
+
+Converting downloaded models:
+
+<openvino_installation_dir>\openvino_2021\deployment_tools\tools\model_downloader>python converter.py --name resnet-50-tf --download_dir <GoodBoyBot_cloning_dir>\GoodBoyBot\models --mo ..\..\model_optimizer\mo.py
+
+<openvino_installation_dir>\openvino_2021\deployment_tools\tools\model_downloader>python converter.py --name mobilenet-v2-pytorch --download_dir <GoodBoyBot_cloning_dir>\GoodBoyBot\models --mo ..\..\model_optimizer\mo.py
