@@ -55,7 +55,7 @@ def build_argparser():
         (CPU by default)', default='CPU', type=str)
     parser.add_argument('-o', '--output', required=False, default='./saved/',
                         help='Optional. Name of the output file(s) to save.')    
-    parser.add_argument('-t', '--prob_threshold', default=0.5, type=float,
+    parser.add_argument('-t', '--prob_threshold', default=0.7, type=float,
         help='Optional. Probability threshold for detections filtering.')
     return parser
 
@@ -119,7 +119,7 @@ def yolo_detection(frame, detections, threshold):
                     dogs.append(frame[ymin:ymax, xmin:xmax])
                     log.info("New dog has deteced")
                     cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-                    cv2.rectangle(frame, (xmin, ymin-30), (xmin+80, ymin), (0, 255, 0), -1)
+                    cv2.rectangle(frame, (xmin, ymin-30), (xmin+95, ymin), (0, 255, 0), -1)
                     cv2.putText(frame, ' Dog #{}'.format(dogs_count),(xmin, ymin - 7), 
                                 cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2) 
                 else:
@@ -127,7 +127,7 @@ def yolo_detection(frame, detections, threshold):
                     cats.append(frame[ymin:ymax, xmin:xmax])
                     log.info("New cat has deteced")
                     cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
-                    cv2.rectangle(frame, (xmin, ymin-30), (xmin+80, ymin), (0, 0, 255), -1)
+                    cv2.rectangle(frame, (xmin, ymin-30), (xmin+95, ymin), (0, 0, 255), -1)
                     cv2.putText(frame, ' Cat #{}'.format(cats_count),(xmin, ymin - 7), 
                                 cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2) 
 
@@ -181,7 +181,7 @@ def main():
     if results:
         Dogs, Cats = yolo_detection(img, results, args.prob_threshold)
         detection_end = time()
-        cv2.imshow('Original', img)
+        cv2.imshow('Detections', img)
         classification_start = time()
         result = list_classifier(Dogs)
     else:

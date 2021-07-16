@@ -68,7 +68,7 @@ def list_classifier(to_classify: list):
     for img in to_classify:
         prob = ie_classifier.classify(img)
         predictions = ie_classifier.get_top(prob, top_n)
-        predictions = [str(ie_classifier.labels_map[predictions[i]]) + ': '
+        predictions = [str(ie_classifier.labels_map[predictions[i]-1]) + ': '
                        + str(predictions[i]) + "  with confidence "
                        + str(prob[0][predictions[i]]) for i in range(top_n)]
         result.append(predictions)
