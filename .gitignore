@@ -10,6 +10,8 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+models/public/yolo-v3-tf/
+models/yolo-v3-tf/
 build/
 develop-eggs/
 dist/
