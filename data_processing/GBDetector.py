@@ -16,6 +16,43 @@ import models
 from pipelines import AsyncPipeline
 from images_capture import open_images_capture
 
+class InferencEngineDetector:
+    def __init__(self, device, num_streams, num_threads):
+
+        # Initialize OpenVINO
+        ie = IECore()
+
+        self.config_user_specified = {}
+        self.devices_nstreams = {}
+        if num_streams:
+            self.devices_nstreams = {device: num_streams for device in ['CPU', 'GPU'] if device in device} \
+                if num_streams.isdigit() \
+                else dict(device.split(':', 1) for device in num_streams.split(','))
+
+        if 'CPU' in device:
+            if num_threads is not None:
+                self.config_user_specified['CPU_THREADS_NUM'] = str(num_threads)
+            if 'CPU' in self.devices_nstreams:
+                self.config_user_specified['CPU_THROUGHPUT_STREAMS'] = self.devices_nstreams['CPU'] \
+                    if int(self.devices_nstreams['CPU']) > 0 \
+                    else 'CPU_THROUGHPUT_AUTO'
+
+        if 'GPU' in device:
+            if 'GPU' in self.devices_nstreams:
+                self.config_user_specified['GPU_THROUGHPUT_STREAMS'] = self.devices_nstreams['GPU'] \
+                    if int(self.devices_nstreams['GPU']) > 0 \
+                    else 'GPU_THROUGHPUT_AUTO'
+
+        return
+
+    def detection():
+        # Load YOLOv3 model
+        detector = models.YOLO(ie, pathlib.Path(args.model), None, 
+                                threshold=args.prob_threshold, keep_aspect_ratio=True)
+        
+        # Initialize async pipeline
+        detector_pipeline = AsyncPipeline(ie, detector, plugin_configs, device='CPU', 
+                                            max_num_requests=1)
 
 def get_plugin_configs(device, num_streams, num_threads):
     config_user_specified = {}
@@ -46,9 +83,9 @@ def get_plugin_configs(device, num_streams, num_threads):
 def build_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--model', help='Path to an .xml \
-        file with a trained model.', required=True, type=str)
+        file with a trained model.', type=str)
     parser.add_argument('-i', '--input', help='Path to \
-        image file', required=True, type=str)
+        image file', type=str)
     parser.add_argument('-d', '--device', help='Specify the target \
         device to infer on; CPU, GPU, FPGA or MYRIAD is acceptable. \
         Sample will look for a suitable plugin for device specified \
@@ -59,7 +96,7 @@ def build_argparser():
         help='Optional. Probability threshold for detections filtering.')
     return parser
 
-def pet_detection(out, frame, threshold):
+'''def pet_detection(out, frame, threshold):
     (height, width) = frame.shape[:2]
     cats = []
     dogs = []
@@ -97,7 +134,7 @@ def pytorch_detection(frame, netsize, net, thr):
     net.setInput(blob)
     out = net.forward()
 
-    return pet_detection(out, frame, thr)
+    return pet_detection(out, frame, thr)'''
  
 def yolo_detection(frame, detections, threshold):
     size = frame.shape[:2]
@@ -140,7 +177,6 @@ def yolo_detection(frame, detections, threshold):
         cv2.imshow('Cat #{}'.format(i), cat)
         i+=1'''
     
-        
     return dogs, cats
 
 
@@ -151,25 +187,34 @@ def main():
     log.info("Start OpenVINO object detection")
     start = time()
     # Initialize data input
-    cap = open_images_capture(args.input, True)
+    #cap = open_images_capture(args.input, True)
     Dogs = []
     Cats = []
     detection_start = time()
-    if 'yolo' in args.model:
-        # Initialize OpenVINO
-        ie = IECore()
-        # Initialize Plugin configs
-        plugin_configs = get_plugin_configs('CPU', 0, 0)
-        # Load YOLOv3 model
-        detector = models.YOLO(ie, pathlib.Path(args.model), None, 
-                                threshold=args.prob_threshold, keep_aspect_ratio=True)
+    model_path = "..\\models\\public\\yolo-v3-tf\\FP16\\yolo-v3-tf.xml"
+    # Initialize OpenVINO
+    ie = IECore()
+    # Initialize Plugin configs
+    plugin_configs = get_plugin_configs('CPU', 0, 0)
+    # Load YOLOv3 model
+    detector = models.YOLO(ie, pathlib.Path(model_path), None, 
+                            threshold=args.prob_threshold, keep_aspect_ratio=True)
         
-        # Initialize async pipeline
-        detector_pipeline = AsyncPipeline(ie, detector, plugin_configs, device='CPU', 
+    # Initialize async pipeline
+    detector_pipeline = AsyncPipeline(ie, detector, plugin_configs, device='CPU', 
                                             max_num_requests=1)
-
+    while True:
+        if cv2.waitKey(0) & 0xFF == 27:
+            break
+        cv2.destroyAllWindows()
         # Get one image 
-        img = cap.read()
+        #img = cap.read()
+        img_path = input("Enter a path of your image ")
+
+        try:
+            img = cv2.imread(img_path)
+        except Exception as ex:
+                print(img_path, " can not be open")
         # Start processing frame asynchronously
         frame_id = 0 
         detector_pipeline.submit_data(img,frame_id,{'frame':img,'start_time':0})
@@ -177,24 +222,24 @@ def main():
         # Get detection result
         results, meta = detector_pipeline.get_result(frame_id)
 
-    # Get list of detections in the image
-    if results:
-        Dogs, Cats = yolo_detection(img, results, args.prob_threshold)
-        detection_end = time()
-        cv2.imshow('Detections', img)
-        classification_start = time()
-        result = list_classifier(Dogs)
-    else:
-        detection_end = time()
-        classification_start = time()
-    end = time()
+        # Get list of detections in the image
+        if results:
+            Dogs, Cats = yolo_detection(img, results, args.prob_threshold)
+            detection_end = time()
+            cv2.imshow('Detections', img)
+            classification_start = time()
+            result = list_classifier(Dogs)
+        else:
+            detection_end = time()
+            classification_start = time()
+        end = time()
 
-    # Time usage
-    log.info("Detection time: {} sec".format(int((detection_end - detection_start)*100)/100))
-    log.info("Classification time: {} sec".format(int((end - classification_start)*100)/100))
-    log.info("Usage time: {} sec".format(int((end - start)*100)/100))
-    cv2.waitKey(0)
-      
+        # Time usage
+        log.info("Detection time: {} sec".format(int((detection_end - detection_start)*100)/100))
+        log.info("Classification time: {} sec".format(int((end - classification_start)*100)/100))
+        log.info("Usage time: {} sec".format(int((end - start)*100)/100))
+        print("Type any button to continue usage the God Boy Bot or type ESC to exit")
+        
     # Destroy all windows
     cv2.destroyAllWindows()
     return

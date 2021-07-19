@@ -9,7 +9,6 @@ import cv2
 import sys
 import numpy as np
 import logging as log
-from numpy.core.fromnumeric import rank
 from openvino.inference_engine import IENetwork, IECore
 
 
