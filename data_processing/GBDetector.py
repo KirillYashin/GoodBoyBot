@@ -228,7 +228,6 @@ def main():
                 detection_start = time()
                 frame_id = 0
                 detector_pipeline.submit_data(img,frame_id,{'frame':img,'start_time':0})
-                #print(frame_id)
                 detector_pipeline.await_any()
                 break
             except Exception as ex:
