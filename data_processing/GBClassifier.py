@@ -9,6 +9,7 @@ import cv2
 import sys
 import numpy as np
 import logging as log
+from time import time
 from openvino.inference_engine import IENetwork, IECore
 
 
@@ -51,8 +52,8 @@ class InferenceEngineClassifier:
 
         return output
 
-
-def list_classifier(to_classify: list):
+def prepairing_classification_model():
+    start = time()
     model = '..\\models\\public\\resnet-50-tf\\FP16\\resnet-50-tf.xml'
     weights = '..\\models\\public\\resnet-50-tf\\FP16\\resnet-50-tf.bin'
     classes_path = '..\\data\\imagenet_synset_words.txt'
@@ -62,26 +63,35 @@ def list_classifier(to_classify: list):
     ie_classifier = InferenceEngineClassifier(config_path=model, weights_path=weights,
                                               device=device, extension=cpu_extension,
                                               classes_path=classes_path)
-    top_n = 3
+    end = time()
+    return ie_classifier, int((end-start)*100)/100
+
+def dog_classifier(ie,researching_image, number):
     result = []
-    for img in to_classify:
-        prob = ie_classifier.classify(img)
-        predictions = ie_classifier.get_top(prob, top_n)
-        predictions = [str(ie_classifier.labels_map[predictions[i]-1]) + ': '
-                       + str(predictions[i]) + "  with confidence "
-                       + str(prob[0][predictions[i]]) for i in range(top_n)]
+    start = time()
+    prob = ie.classify(researching_image)
+    end = time()
+    predictions = ie.get_top(prob, 3)
+    if (predictions[0] > 151 and predictions[0] < 269) or \
+        (predictions[1] > 151 and predictions[1] < 269):
+        check = True
+        predictions = [str(ie.labels_map[predictions[i]-1]) + ': '
+                        + str(predictions[i]) + "  with confidence "
+                        + str(prob[0][predictions[i]]) for i in range(3)]
         result.append(predictions)
         #log.info("Predictions: " + str(predictions))
+    else:
+        check = False
     ranked = 0
     for prediction in result:
-        print('Dog #{}:'.format(ranked+1))
+        print('Dog #{}:'.format(number))
         print("Top predictions:")
         for breed in result[ranked]:
             print('\t' + str(breed))
         ranked += 1
     #for i in range(result.shape):
 
-    return result
+    return check, result, int((end-start)*100)/100
 
 
 def main():

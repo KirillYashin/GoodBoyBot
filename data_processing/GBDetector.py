@@ -7,7 +7,8 @@ import argparse
 import pathlib
 from time import time
 
-from GBClassifier import list_classifier
+from GBClassifier import prepairing_classification_model
+from GBClassifier import dog_classifier
 
 #from performance_metrics import PerformanceMetrics
 
@@ -93,7 +94,7 @@ def build_argparser():
         (CPU by default)', default='CPU', type=str)
     parser.add_argument('-o', '--output', required=False, default='./saved/',
                         help='Optional. Name of the output file(s) to save.')    
-    parser.add_argument('-t', '--prob_threshold', default=0.7, type=float,
+    parser.add_argument('-t', '--prob_threshold', default=0.75, type=float,
         help='Optional. Probability threshold for detections filtering.')
     return parser
 
@@ -144,6 +145,9 @@ def yolo_detection(frame, detections, threshold):
     dogs = []
     dogs_count = 0
     cats_count = 0
+    classification_time = 0
+    ie, pr_time = prepairing_classification_model()
+
     for detection in detections:
         det_class = int(detection.id)
         # If score more than threshold and detection is a pet
@@ -153,22 +157,23 @@ def yolo_detection(frame, detections, threshold):
                 ymin = max(int(detection.ymin), 0)
                 xmax = min(int(detection.xmax), size[1])
                 ymax = min(int(detection.ymax), size[0])
-                if det_class == 16:
-                    dogs_count += 1
-                    dogs.append(frame[ymin:ymax, xmin:xmax])
-                    log.info("New dog has deteced")
-                    cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-                    cv2.rectangle(frame, (xmin, ymin-30), (xmin+95, ymin), (0, 255, 0), -1)
-                    cv2.putText(frame, ' Dog #{}'.format(dogs_count),(xmin, ymin - 7), 
-                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2) 
+                if det_class == 16: # Dog
+                    check, result, cl_time = dog_classifier(ie, frame[ymin:ymax, xmin:xmax], dogs_count+1)
+                    classification_time += cl_time
+                    if check:
+                        dogs_count += 1
+                        dogs.append(frame[ymin:ymax, xmin:xmax])
+                        cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
+                        cv2.rectangle(frame, (xmin, ymin-30), (xmin+95, ymin), (0, 255, 0), -1)
+                        cv2.putText(frame, ' Dog #{}'.format(dogs_count),(xmin, ymin - 7), 
+                                    cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2)
                 else:
                     cats_count += 1
                     cats.append(frame[ymin:ymax, xmin:xmax])
-                    log.info("New cat has deteced")
                     cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
                     cv2.rectangle(frame, (xmin, ymin-30), (xmin+95, ymin), (0, 0, 255), -1)
                     cv2.putText(frame, ' Cat #{}'.format(cats_count),(xmin, ymin - 7), 
-                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2) 
+                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2)
 
     # Showing Croped images
     '''i = 0
@@ -180,7 +185,7 @@ def yolo_detection(frame, detections, threshold):
         cv2.imshow('Cat #{}'.format(i), cat)
         i+=1'''
     
-    return dogs, cats
+    return dogs, cats, (pr_time + classification_time)
 
 
 def main():
@@ -213,35 +218,40 @@ def main():
         
         # Get one image 
         #img = cap.read()
-        img_path = input("Enter a path of your image ")
-        # Нужно будет включить автоматическую подгрузку и выгрузку через бот
-        try:
-            img = cv2.imread(img_path)
-        except Exception as ex:
-                print(img_path, " can not be open")
-        # Start processing frame asynchronously
-        detection_start = time()
-        frame_id = 0 
-        detector_pipeline.submit_data(img,frame_id,{'frame':img,'start_time':0})
-        detector_pipeline.await_any()
+        while True:
+            img_path = input("Enter a path of your image ")
+            # Нужно будет включить автоматическую подгрузку и выгрузку через бот
+            try:
+                img = cv2.imread(img_path)
+                cv2.imshow("out",img)
+                cv2.destroyAllWindows()
+                detection_start = time()
+                frame_id = 0
+                detector_pipeline.submit_data(img,frame_id,{'frame':img,'start_time':0})
+                #print(frame_id)
+                detector_pipeline.await_any()
+                break
+            except Exception as ex:
+                print(img_path, " can not be open. Try another path, please ")
+                continue
+        
         # Get detection result
         results, meta = detector_pipeline.get_result(frame_id)
 
         # Get list of detections in the image
         if results:
-            Dogs, Cats = yolo_detection(img, results, args.prob_threshold)
+            Dogs, Cats, classification_time = yolo_detection(img, results, args.prob_threshold)
             detection_end = time()
+        
             cv2.imshow('Detections', img)
-            classification_start = time()
-            result = list_classifier(Dogs)
+            #result = list_classifier(Dogs)
         else:
             detection_end = time()
-            classification_start = time()
         end = time()
 
         # Time usage
-        log.info("Detection time: {} sec".format(int((detection_end - detection_start)*100)/100))
-        log.info("Classification time: {} sec".format(int((end - classification_start)*100)/100))
+        log.info("Classification time: {} sec".format(classification_time))
+        log.info("Detection with classification checking: {} sec".format(int((detection_end - detection_start)*100)/100))
         log.info("Usage time: {} sec".format(int((end - start)*100)/100))
         print("Type any button to continue usage the God Boy Bot or type ESC to exit")
         
