@@ -44,15 +44,16 @@ class InferencEngineDetector:
                     else 'GPU_THROUGHPUT_AUTO'
 
         return
-
-    def detection():
+    
+    # ДУБЛИРУЮЩИЕ ФУНКЦИИ
+    '''def detection():
         # Load YOLOv3 model
         detector = models.YOLO(ie, pathlib.Path(args.model), None, 
                                 threshold=args.prob_threshold, keep_aspect_ratio=True)
         
         # Initialize async pipeline
         detector_pipeline = AsyncPipeline(ie, detector, plugin_configs, device='CPU', 
-                                            max_num_requests=1)
+                                            max_num_requests=1)'''
 
 def get_plugin_configs(device, num_streams, num_threads):
     config_user_specified = {}
@@ -96,6 +97,7 @@ def build_argparser():
         help='Optional. Probability threshold for detections filtering.')
     return parser
 
+# Detection for pytorch - Unused
 '''def pet_detection(out, frame, threshold):
     (height, width) = frame.shape[:2]
     cats = []
@@ -168,6 +170,7 @@ def yolo_detection(frame, detections, threshold):
                     cv2.putText(frame, ' Cat #{}'.format(cats_count),(xmin, ymin - 7), 
                                 cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2) 
 
+    # Showing Croped images
     '''i = 0
     for dog in dogs:
         cv2.imshow('Dog #{}'.format(i), dog)
@@ -190,7 +193,7 @@ def main():
     #cap = open_images_capture(args.input, True)
     Dogs = []
     Cats = []
-    detection_start = time()
+    
     model_path = "..\\models\\public\\yolo-v3-tf\\FP16\\yolo-v3-tf.xml"
     # Initialize OpenVINO
     ie = IECore()
@@ -207,15 +210,17 @@ def main():
         if cv2.waitKey(0) & 0xFF == 27:
             break
         cv2.destroyAllWindows()
+        
         # Get one image 
         #img = cap.read()
         img_path = input("Enter a path of your image ")
-
+        # Нужно будет включить автоматическую подгрузку и выгрузку через бот
         try:
             img = cv2.imread(img_path)
         except Exception as ex:
                 print(img_path, " can not be open")
         # Start processing frame asynchronously
+        detection_start = time()
         frame_id = 0 
         detector_pipeline.submit_data(img,frame_id,{'frame':img,'start_time':0})
         detector_pipeline.await_any()
