@@ -249,7 +249,7 @@ def main():
         end = time()
 
         # Time usage
-        log.info("Classification time: {} sec".format(classification_time))
+        log.info("Classification time: {} sec".format(int(classification_time * 100)/100))
         log.info("Detection with classification checking: {} sec".format(int((detection_end - detection_start)*100)/100))
         log.info("Usage time: {} sec".format(int((end - start)*100)/100))
         print("Type any button to continue usage the God Boy Bot or type ESC to exit")
