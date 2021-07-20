@@ -72,6 +72,7 @@ def dog_classifier(ie,researching_image, number):
         data = json.load(read_file)
     result = []
     breeds = []
+    confidences = []
     start = time()
     prob = ie.classify(researching_image)
     end = time()
@@ -83,6 +84,7 @@ def dog_classifier(ie,researching_image, number):
         for i in range(3):
             if predictions[i] > 151 and predictions[i] < 269:
                 breeds.append(ie.labels_map[predictions[i]-1])
+                confidences.append(prob[0][predictions[i]])
 
         predictions = [str(ie.labels_map[predictions[i]-1]) + ': '
                         + str(predictions[i]) + "  with confidence "
@@ -92,7 +94,7 @@ def dog_classifier(ie,researching_image, number):
         #log.info("Predictions: " + str(predictions))
     else:
         check = False
-        print("CAAAAT")
+
     ranked = 0
     for prediction in result:
         print('Dog #{}:'.format(number))
@@ -109,7 +111,7 @@ def dog_classifier(ie,researching_image, number):
             print('\t',key, ': ', value)
     
     
-    return check, result, int((end-start)*100)/100
+    return check, result, confidences, int((end-start)*100)/100
 
 
 def main():

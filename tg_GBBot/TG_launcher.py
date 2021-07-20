@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 
 from aiogram import Bot, Dispatcher, executor, types
-from GBDetector import Detection
+from GBDetector import Detector
 # bot init
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
@@ -43,8 +43,11 @@ async def photo_reaction(message):
     open_cv_image = np.array(img)
 
     open_cv_image = cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2RGB)
-
-    Detection(open_cv_image)
+    Dogs = []
+    Cats = []
+    Conf = []
+    
+    Dogs, Cats, Conf, out = Detector(open_cv_image)
 
     # await message.answer_photo(image.seek(0))
 
