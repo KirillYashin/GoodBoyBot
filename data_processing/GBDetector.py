@@ -10,6 +10,7 @@ from time import time
 from GBClassifier import prepairing_classification_model
 from GBClassifier import dog_classifier
 
+
 #from performance_metrics import PerformanceMetrics
 
 sys.path.append('C:\\Program Files (x86)\\Intel\\openvino_2021\\deployment_tools\\open_model_zoo\\demos\\common\\python')
@@ -188,7 +189,7 @@ def yolo_detection(frame, detections, threshold):
     return dogs, cats, (pr_time + classification_time)
 
 
-def main():
+def Detection(det_image):
     log.basicConfig(format="[ %(levelname)s ] %(message)s",
                     level=log.INFO, stream=sys.stdout)
     args = build_argparser().parse_args()
@@ -219,10 +220,12 @@ def main():
         # Get one image 
         #img = cap.read()
         while True:
-            img_path = input("Enter a path of your image ")
+            #img_path = input("Enter a path of your image ")
             # Нужно будет включить автоматическую подгрузку и выгрузку через бот
             try:
-                img = cv2.imread(img_path)
+                #img = cv2.imread(img_path)
+                img = det_image
+
                 cv2.imshow("out",img)
                 cv2.destroyAllWindows()
                 detection_start = time()
@@ -258,6 +261,8 @@ def main():
     cv2.destroyAllWindows()
     return
 
+def main():
+    Detection(image)
 
 if __name__ == '__main__':
     sys.exit(main())

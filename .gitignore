@@ -118,3 +118,4 @@ dmypy.json
 .pyre/
 
 # Other directories
+tg_GBBot/config.py
