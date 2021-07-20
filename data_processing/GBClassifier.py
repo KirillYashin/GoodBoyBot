@@ -7,6 +7,7 @@ python ie_classification_sample.py -i image.jpg \
 """
 import cv2
 import sys
+import json
 import numpy as np
 import logging as log
 from time import time
@@ -24,7 +25,7 @@ class InferenceEngineClassifier:
 
         # Add code for classes names loading
         with open(classes_path, 'r') as f:
-            self.labels_map = [x.split(sep=' ', maxsplit=1)[-1].strip().split(sep=',')[0] for x in f]
+            self.labels_map = [x.split(sep=' ', maxsplit=1)[-1].strip() for x in f]
         return
 
     def get_top(self, prob, top_n=1):
@@ -67,7 +68,10 @@ def prepairing_classification_model():
     return ie_classifier, int((end-start)*100)/100
 
 def dog_classifier(ie,researching_image, number):
+    with open("..\\data\\data.json", "r", encoding="utf-8") as read_file:
+        data = json.load(read_file)
     result = []
+    breeds = []
     start = time()
     prob = ie.classify(researching_image)
     end = time()
@@ -75,10 +79,16 @@ def dog_classifier(ie,researching_image, number):
     if (predictions[0] > 151 and predictions[0] < 269) or \
         (predictions[1] > 151 and predictions[1] < 269):
         check = True
+
+        for i in range(3):
+            if predictions[i] > 151 and predictions[i] < 269:
+                breeds.append(ie.labels_map[predictions[i]-1])
+
         predictions = [str(ie.labels_map[predictions[i]-1]) + ': '
                         + str(predictions[i]) + "  with confidence "
                         + str(prob[0][predictions[i]]) for i in range(3)]
         result.append(predictions)
+       
         #log.info("Predictions: " + str(predictions))
     else:
         check = False
@@ -90,7 +100,14 @@ def dog_classifier(ie,researching_image, number):
             print('\t' + str(breed))
         ranked += 1
     #for i in range(result.shape):
-
+    
+    for breed in breeds:
+        print(breed)
+        breed_info = data.get(breed)
+        for key, value in breed_info.items():
+            print('\t',key, ': ', value)
+    
+    
     return check, result, int((end-start)*100)/100
 
 
@@ -98,7 +115,6 @@ def main():
     img1 = cv2.imread('img.png')
     img2 = cv2.imread('img_1.png')
     to_classify = [img1, img2]
-    result = list_classifier(to_classify)
 
     return
 
