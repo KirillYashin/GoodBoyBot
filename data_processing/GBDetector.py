@@ -92,6 +92,7 @@ def yolo_detection(frame, detections, threshold):
     size = frame.shape[:2]
     cats = []
     dogs = []
+    dogs_pics = []
     dogs_count = 0
     cats_count = 0
     classification_time = 0
@@ -107,11 +108,12 @@ def yolo_detection(frame, detections, threshold):
                 xmax = min(int(detection.xmax), size[1])
                 ymax = min(int(detection.ymax), size[0])
                 if det_class == 16: # Dog
-                    check, result, conf, cl_time = dog_classifier(ie, frame[ymin:ymax, xmin:xmax], dogs_count+1)
+                    check, breeds, conf, cl_time = dog_classifier(ie, frame[ymin:ymax, xmin:xmax], dogs_count+1)
                     classification_time += cl_time
                     if check:
                         dogs_count += 1
-                        dogs.append(frame[ymin:ymax, xmin:xmax])
+                        dogs_pics.append(frame[ymin:ymax, xmin:xmax])
+                        dogs.append(breeds)
                         cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
                         cv2.rectangle(frame, (xmin, ymin-30), (xmin+95, ymin), (0, 255, 0), -1)
                         cv2.putText(frame, ' Dog #{}'.format(dogs_count),(xmin, ymin - 7), 

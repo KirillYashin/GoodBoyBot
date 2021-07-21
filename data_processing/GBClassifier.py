@@ -78,7 +78,7 @@ def dog_classifier(ie,researching_image, number):
     end = time()
     predictions = ie.get_top(prob, 3)
     if (predictions[0] > 151 and predictions[0] < 269) or \
-        ((predictions[1] > 151 and predictions[1] < 269) and prob[0][predictions[1]] > 0.1):
+        ((predictions[1] > 151 and predictions[1] < 269) and prob[0][predictions[1]] > 0.15):
         check = True
 
         for i in range(3):
@@ -111,7 +111,7 @@ def dog_classifier(ie,researching_image, number):
             print('\t',key, ': ', value)
     
     
-    return check, result, confidences, int((end-start)*100)/100
+    return check, breeds, confidences, int((end-start)*100)/100
 
 
 def main():

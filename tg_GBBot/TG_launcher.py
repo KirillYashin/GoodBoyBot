@@ -10,6 +10,7 @@ from PIL import Image
 
 from aiogram import Bot, Dispatcher, executor, types
 from GBDetector import Detector
+
 # bot init
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
@@ -48,7 +49,6 @@ async def photo_reaction(message):
     Conf = []
     
     Dogs, Cats, Conf, out = Detector(open_cv_image)
-
     # await message.answer_photo(image.seek(0))
 
 
