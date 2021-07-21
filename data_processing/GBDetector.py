@@ -122,13 +122,20 @@ def yolo_detection(frame, detections, threshold):
                 else:
                     cats_count += 1
                     cats.append(frame[ymin:ymax, xmin:xmax])
-                    cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
+                    '''cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
                     cv2.rectangle(frame, (xmin, ymin-30), (xmin+95, ymin), (0, 0, 255), -1)
                     cv2.putText(frame, ' Cat #{}'.format(cats_count),(xmin, ymin - 7), 
-                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2)
+                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2)'''
     
     return dogs, cats, conf, (pr_time + classification_time)
 
+def get_breed_info(ru_breed):
+    
+    with open("..\\data\\data.json", "r", encoding="utf-8") as read_file:
+        data = json.load(read_file)
+        breed_info = data.get(breed)
+        for key, value in breed_info.items():
+            print('\t',key, ': ', value)
 
 def Detector(det_image):
     log.basicConfig(format="[ %(levelname)s ] %(message)s",
@@ -154,8 +161,7 @@ def Detector(det_image):
     detector_pipeline = AsyncPipeline(ie, detector, plugin_configs, device='CPU', 
                                             max_num_requests=1)
 
-    with open("..\\data\\data.json", "r", encoding="utf-8") as read_file:
-        data = json.load(read_file)
+    
     while True:
 
         # Get one image 
@@ -180,7 +186,7 @@ def Detector(det_image):
 
             outcome_image=img
             for breed in Dogs:
-                print(breed)
+                get_breed_info(breed)
                 
             #cv2.imshow('The outcome', outcome_image)
         else:
