@@ -1,4 +1,5 @@
 from typing import io
+from io import BytesIO
 import aiogram.bot.api
 import matplotlib.pyplot as plt
 
@@ -10,7 +11,6 @@ from PIL import Image
 
 from aiogram import Bot, Dispatcher, executor, types
 from GBDetector import Detector
-
 # bot init
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
@@ -29,10 +29,12 @@ async def process_help_command(message: types.Message):
     await message.answer("Отправь мне фотографию собачки, а я назову ее породу)")
 
 
-# echo bot test
+# dog breed answer
 @dp.message_handler()
 async def echo(message: types.Message):
-    await message.answer(message.text)
+    breed = message.text.lower().title()
+    print(breed)
+    await message.answer(breed)
 
 
 # photo reaction test
@@ -47,9 +49,23 @@ async def photo_reaction(message):
     Dogs = []
     Cats = []
     Conf = []
-    
     Dogs, Cats, Conf, out = Detector(open_cv_image)
-    # await message.answer_photo(image.seek(0))
+    out = cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2RGB)
+    if len(Dogs) == 0:
+        if len(Cats) == 0:
+            await message.answer('Я никого не нашел на фото(')
+        else:
+            await message.answer('Кис кис, кис кис. Я ботик, ты котик)')
+    elif len(Dogs) == 1:
+        print("")
+    else:
+        output_image = Image.fromarray(out)
+        stream_image = BytesIO()
+        stream_image.name = "Dogs.jpg"
+        output_image.save(stream_image, 'JPEG')
+        stream_image.seek(0)
+        await message.answer_photo(stream_image, caption='Выбери породу какого песика ты хочешь узнать)')
+    await message.answer(caption='Выбери породу какого песика ты хочешь узнать)')
 
 
 # run long-polling
