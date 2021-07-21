@@ -1,10 +1,3 @@
-"""
-Classification sample
-
-Command line to run:
-python ie_classification_sample.py -i image.jpg \
-    -m resnet-50.xml -w resnet-50.bin -c imagenet_synset_words.txt
-"""
 import cv2
 import sys
 import json
@@ -104,11 +97,11 @@ def dog_classifier(ie,researching_image, number):
         ranked += 1
     #for i in range(result.shape):
     
-    for breed in breeds:
+    '''for breed in breeds:
         print(breed)
         breed_info = data.get(breed)
         for key, value in breed_info.items():
-            print('\t',key, ': ', value)
+            print('\t',key, ': ', value)'''
     
     
     return check, breeds, confidences, int((end-start)*100)/100

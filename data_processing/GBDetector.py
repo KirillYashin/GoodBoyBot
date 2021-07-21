@@ -1,11 +1,12 @@
 import cv2
-import numpy as np
-from openvino.inference_engine import IECore
 import sys
-import logging as log
-import argparse
+import json
 import pathlib
+import argparse
+import numpy as np
+import logging as log
 from time import time
+from openvino.inference_engine import IECore
 
 sys.path.append('C:\\Program Files (x86)\\Intel\\openvino_2021\\deployment_tools\\open_model_zoo\\demos\\common\\python')
 
@@ -152,6 +153,9 @@ def Detector(det_image):
     # Initialize async pipeline
     detector_pipeline = AsyncPipeline(ie, detector, plugin_configs, device='CPU', 
                                             max_num_requests=1)
+
+    with open("..\\data\\data.json", "r", encoding="utf-8") as read_file:
+        data = json.load(read_file)
     while True:
 
         # Get one image 
@@ -175,7 +179,10 @@ def Detector(det_image):
             detection_end = time()
 
             outcome_image=img
-            cv2.imshow('The outcome', outcome_image)
+            for breed in Dogs:
+                print(breed)
+                
+            #cv2.imshow('The outcome', outcome_image)
         else:
             detection_end = time()
         end = time()
@@ -184,8 +191,8 @@ def Detector(det_image):
         log.info("Classification time: {} sec".format(int(classification_time * 100)/100))
         log.info("Detection with classification checking: {} sec".format(int((detection_end - detection_start)*100)/100))
         log.info("Usage time: {} sec".format(int((end - start)*100)/100))
-        print("Type any button to continue usage the God Boy Bot or type ESC to exit")
-        cv2.waitKey(0)
+        #print("Type any button to continue usage the God Boy Bot or type ESC to exit")
+        #cv2.waitKey(0)
         break
     # Destroy all windows
     cv2.destroyAllWindows()
