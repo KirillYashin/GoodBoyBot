@@ -7,6 +7,8 @@ import config
 import logging
 import cv2
 import numpy as np
+import json
+from random import randint
 from PIL import Image
 
 from aiogram import Bot, Dispatcher, executor, types
@@ -33,22 +35,37 @@ async def process_help_command(message: types.Message):
 # photo reaction test
 @dp.message_handler(content_types=['photo'])
 async def photo_reaction(message):
+    # get image from bot
     file_dct = await bot.get_file(file_id=message["photo"][-1]["file_id"])
     image = await bot.download_file(file_dct['file_path'])
+
+    # prepare image for detection
     img = Image.open(image).convert('RGB')
     open_cv_image = np.array(img)
-
     open_cv_image = cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2RGB)
+
+    # detection and classification
     dogs = []
     cats = []
     conf = []
     dogs, cats, conf, out = Detector(open_cv_image)
+
+    # out image conversion
     out = cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2RGB)
+
+    # load bot answers
+    with open('..\\data\\answers.json', "r", encoding="utf-8") as f:
+        file_content = f.read()
+        answers = json.loads(file_content)
+
+    # answering part
     if len(dogs) == 0:
         if len(cats) == 0:
-            await message.answer('Я никого не нашел на фото(')
+            ans = answers['undetected breed'][randint(0, len(answers['undetected breed'])-1)]
+            await message.answer(ans)
         else:
-            await message.answer('Кис кис, кис кис. Я ботик, ты котик)')
+            ans = answers['cats'][randint(0, len(answers['cats']) - 1)]
+            await message.answer(ans)
     elif len(dogs) == 1:
         output_image = Image.fromarray(out)
         stream_image = BytesIO()
@@ -86,9 +103,14 @@ async def breed_answering(message: types.Message, dog_list):
 @dp.message_handler()
 async def echo(message: types.Message):
     breed = message.text.lower().capitalize()
+    with open('..\\data\\answers.json', "r", encoding="utf-8") as f:
+        file_content = f.read()
+        answers = json.loads(file_content)
+
     breed_info, image_url = get_breed_info(breed)
     if breed_info == " ":
-        await message.answer("Что-то не припомню такой породы")
+        ans = answers['unknown breed'][randint(0, len(answers['unknown breed'])-1)]
+        await message.answer(ans)
     await message.answer_photo(image_url, caption=breed_info)
 
 
