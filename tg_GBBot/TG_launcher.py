@@ -111,7 +111,8 @@ async def echo(message: types.Message):
     if breed_info == " ":
         ans = answers['unknown breed'][randint(0, len(answers['unknown breed'])-1)]
         await message.answer(ans)
-    await message.answer_photo(image_url, caption=breed_info)
+    else:
+        await message.answer_photo(image_url, caption=breed_info)
 
 
 # run long-polling
