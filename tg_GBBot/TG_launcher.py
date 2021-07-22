@@ -66,14 +66,19 @@ async def photo_reaction(message):
         stream_image.name = "Dogs.jpg"
         output_image.save(stream_image, 'JPEG')
         stream_image.seek(0)
+        # await was here
         await message.answer_photo(stream_image, caption='Выбери породу какого песика ты хочешь узнать)')
+        await breed_answering(message, Dogs)
     @dp.message_handler()
     async def test(message1):
         print(message1.text)
 
+def breed_answering(message: types.Message, Dogs):
+    for breed in Dogs:
+        await message.answer("Что-то не припомню такой породы") 
 
 # dog breed answer
-@dp.message_handler()
+#@dp.message_handler()
 async def echo(message: types.Message):
     breed = message.text.lower().title()
     breed_info, image_url = get_breed_info(breed)
