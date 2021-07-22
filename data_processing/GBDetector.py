@@ -117,11 +117,11 @@ def yolo_detection(frame, detections, threshold):
                         dogs_pics.append(frame[ymin:ymax, xmin:xmax])
                         dogs.append(breeds)
                         cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-                        cv2.rectangle(frame, (xmin, ymin-30), (xmax, ymin), (0, 255, 0), -1)
-                        cv2.putText(frame, translator(str(breeds[0])),(xmin, ymin - 7), 
+                        cv2.rectangle(frame, (xmin, ymin+30), (xmax, ymin), (0, 255, 0), -1)
+                        cv2.putText(frame, translator(str(breeds[0])),(xmin, ymin+23), 
                                     cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2)
-                        cv2.rectangle(frame, (xmin, ymax), (xmax, ymax+30), (0, 255, 0), -1)
-                        cv2.putText(frame, f"Уверенность: {round(conf[0]*100, 1)}%",(xmin, ymax + 23), 
+                        cv2.rectangle(frame, (xmin, ymax), (xmax, ymax-30), (0, 255, 0), -1)
+                        cv2.putText(frame, f"Уверенность: {round(conf[0]*100, 1)}%",(xmin, ymax-7), 
                                     cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2)
                 else:
                     cats_count += 1
@@ -152,8 +152,16 @@ def get_breed_info(ru_breed):
                 link = " "
             else:
                 link = breed_info.get("Ссылка на картинку")
-                info = breed_info.get("Описание")
-            
+                info = breed_info.get("Описание") + '\n' + \
+                        "Стоимость: " + breed_info.get("Стоимость") + '\n' + \
+                        "Длительность жизни: " + breed_info.get("Длительность жизни") + '\n' + \
+                        "Шерсть: " + breed_info.get("Шерсть") + '\n' + \
+                        "Рождаемость: " + breed_info.get("Рождаемость") + '\n' + \
+                        "Рост в холке, см: " + breed_info.get("Рост в холке, см") + '\n' + \
+                        "Вес, кг: " + breed_info.get("Вес, кг") + '\n' + \
+                        "Опыт содержания: " + breed_info.get("Содержание") + '\n' + \
+                        "Назначение: " + breed_info.get("Назначение") + '\n' + \
+                        "Ссылка на собаку: " + breed_info.get("Ссылка на собаку") + '\n'
             return info, link
 
 
