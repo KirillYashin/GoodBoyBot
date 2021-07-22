@@ -10,7 +10,7 @@ import numpy as np
 from PIL import Image
 
 from aiogram import Bot, Dispatcher, executor, types
-from GBDetector import Detector, get_breed_info
+from GBDetector import Detector, get_breed_info, translator
 # bot init
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
@@ -49,7 +49,17 @@ async def photo_reaction(message):
         else:
             await message.answer('Кис кис, кис кис. Я ботик, ты котик)')
     elif len(Dogs) == 1:
-        print("")
+        output_image = Image.fromarray(out)
+        stream_image = BytesIO()
+        stream_image.name = "Dogs.jpg"
+        output_image.save(stream_image, 'JPEG')
+        stream_image.seek(0)
+        breed = translator(Dogs[0][0])
+        breed_info, image_url = get_breed_info(breed)
+        breed_info = "Мне кажется, что это ", breed + '\n' + breed_info
+        await message.answer_photo(image_url, caption=breed_info)
+        #await message.answer_photo(stream_image, caption=breed)
+        
     else:
         output_image = Image.fromarray(out)
         stream_image = BytesIO()
@@ -67,13 +77,9 @@ async def photo_reaction(message):
 async def echo(message: types.Message):
     breed = message.text.lower().title()
     breed_info, image_url = get_breed_info(breed)
-    if breed_info == "":
+    if breed_info == " ":
         await message.answer("Что-то не припомню такой породы")
     await message.answer_photo(image_url, caption=breed_info)
-
-
-
-
 
 
 # run long-polling

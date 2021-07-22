@@ -97,6 +97,7 @@ def yolo_detection(frame, detections, threshold):
     dogs_count = 0
     cats_count = 0
     classification_time = 0
+    conf = 0
     ie, pr_time = prepairing_classification_model()
 
     for detection in detections:
@@ -116,8 +117,8 @@ def yolo_detection(frame, detections, threshold):
                         dogs_pics.append(frame[ymin:ymax, xmin:xmax])
                         dogs.append(breeds)
                         cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-                        cv2.rectangle(frame, (xmin, ymin-30), (xmin+95, ymin), (0, 255, 0), -1)
-                        cv2.putText(frame, ' Dog #{}'.format(dogs_count),(xmin, ymin - 7), 
+                        cv2.rectangle(frame, (xmin, ymin-30), (xmax, ymin), (0, 255, 0), -1)
+                        cv2.putText(frame, translator(str(breeds[0])),(xmin, ymin - 7), 
                                     cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2)
                 else:
                     cats_count += 1
@@ -129,13 +130,29 @@ def yolo_detection(frame, detections, threshold):
     
     return dogs, cats, conf, (pr_time + classification_time)
 
+def translator(en_breed):
+    with open("..\\data\\breeds_ru_to_en.json", "r", encoding="utf-8") as translator:
+        breeds = json.load(translator)
+        for ru_breed, val in breeds.items():
+            if val == str(en_breed):
+                return ru_breed
+
 def get_breed_info(ru_breed):
-    
-    with open("..\\data\\data.json", "r", encoding="utf-8") as read_file:
-        data = json.load(read_file)
-        breed_info = data.get(breed)
-        for key, value in breed_info.items():
-            print('\t',key, ': ', value)
+    with open("..\\data\\breeds_ru_to_en.json", "r", encoding="utf-8") as translator:
+        en_breeds = json.load(translator)
+        en_breed = en_breeds.get(str(ru_breed))
+        with open("..\\data\\data.json", "r", encoding="utf-8") as read_file:
+            data = json.load(read_file)
+            breed_info = data.get(en_breed, None)
+            if breed_info == None:
+                info = " "
+                link = " "
+            else:
+                link = breed_info.get("Ссылка на картинку")
+                info = breed_info.get("Описание")
+            
+            return info, link
+
 
 def Detector(det_image):
     log.basicConfig(format="[ %(levelname)s ] %(message)s",
@@ -161,16 +178,10 @@ def Detector(det_image):
     detector_pipeline = AsyncPipeline(ie, detector, plugin_configs, device='CPU', 
                                             max_num_requests=1)
 
-    
     while True:
 
-        # Get one image 
-        #img_path = input("Enter a path of your image ")
-        #img = cv2.imread(img_path)
         img = det_image
 
-        #cv2.imshow("out",img)
-        #cv2.destroyAllWindows()
         detection_start = time()
         frame_id = 0
         detector_pipeline.submit_data(img,frame_id,{'frame':img,'start_time':0})
@@ -185,11 +196,14 @@ def Detector(det_image):
             detection_end = time()
 
             outcome_image=img
-            for breed in Dogs:
-                get_breed_info(breed)
                 
-            #cv2.imshow('The outcome', outcome_image)
+            # cv2.imshow('The outcome', outcome_image)
+            # cv2.waitKey(0)
         else:
+            log.info("I see nothing")
+            Confidences = 0
+            classification_time = 0
+            outcome_image=img
             detection_end = time()
         end = time()
 
