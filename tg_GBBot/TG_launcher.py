@@ -1,3 +1,4 @@
+import random
 from typing import io
 from io import BytesIO
 import aiogram.bot.api
@@ -22,17 +23,32 @@ dp = Dispatcher(bot)
 # start message
 @dp.message_handler(commands=['start'])
 async def process_help_command(message: types.Message):
-    await message.answer("Привет, я бот, определяющий породы собак по фотографии) \
-                        Отправь мне фото и я скажу тебе кто на нем)")
+    ans = "Привет, я бот, определяющий породы собак по фотографии)" \
+          " Отправь мне фото и я скажу тебе кто на нем)\nEсли же просто" \
+          " хочешь позалипать" + " на милых песелей, напиши команду /dog"
+    await message.answer(ans)
 
 
 # bot help
 @dp.message_handler(commands=['help'])
 async def process_help_command(message: types.Message):
-    await message.answer("Отправь мне фотографию собачки, а я назову ее породу)")
+    ans = "Отправь мне фотографию собачки, а я назову ее породу)" \
+          " Или если хочешь позалипать на милых песелей, напиши команду /dog"
+    await message.answer(ans)
 
 
-# photo reaction test
+# random doge info
+@dp.message_handler(commands=['dog'])
+async def process_help_command(message: types.Message):
+    with open('..\\data\\data.json', "r", encoding="utf-8") as f:
+        file_content = f.read()
+        data = json.loads(file_content)
+    random_dog = data[random.choice(list(data.keys()))]["Название породы"]
+    breed_info, image_url = get_breed_info(random_dog)
+    await message.answer_photo(image_url, caption=f"{random_dog}.\n{breed_info}")
+
+
+# photo classification
 @dp.message_handler(content_types=['photo'])
 async def photo_reaction(message):
     # get image from bot
@@ -101,7 +117,7 @@ async def breed_answering(message: types.Message, dog_list):
 
 # dog breed answer
 @dp.message_handler()
-async def echo(message: types.Message):
+async def dog_breed(message: types.Message):
     breed = message.text.lower().capitalize()
     with open('..\\data\\answers.json', "r", encoding="utf-8") as f:
         file_content = f.read()
