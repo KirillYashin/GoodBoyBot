@@ -120,6 +120,9 @@ def yolo_detection(frame, detections, threshold):
                         cv2.rectangle(frame, (xmin, ymin-30), (xmax, ymin), (0, 255, 0), -1)
                         cv2.putText(frame, translator(str(breeds[0])),(xmin, ymin - 7), 
                                     cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2)
+                        cv2.rectangle(frame, (xmin, ymax), (xmax, ymax+30), (0, 255, 0), -1)
+                        cv2.putText(frame, f"Уверенность: {round(conf[0]*100, 1)}%",(xmin, ymax + 23), 
+                                    cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 0, 0), 2)
                 else:
                     cats_count += 1
                     cats.append(frame[ymin:ymax, xmin:xmax])
@@ -178,42 +181,38 @@ def Detector(det_image):
     detector_pipeline = AsyncPipeline(ie, detector, plugin_configs, device='CPU', 
                                             max_num_requests=1)
 
-    while True:
+    img = det_image
 
-        img = det_image
+    detection_start = time()
+    frame_id = 0
+    detector_pipeline.submit_data(img,frame_id,{'frame':img,'start_time':0})
+    detector_pipeline.await_any()
 
-        detection_start = time()
-        frame_id = 0
-        detector_pipeline.submit_data(img,frame_id,{'frame':img,'start_time':0})
-        detector_pipeline.await_any()
+    # Get detection result
+    results, meta = detector_pipeline.get_result(frame_id)
 
-        # Get detection result
-        results, meta = detector_pipeline.get_result(frame_id)
+    # Get list of detections in the image
+    if results:
+        Dogs, Cats, Confidences, classification_time = yolo_detection(img, results, args.prob_threshold)
+        detection_end = time()
 
-        # Get list of detections in the image
-        if results:
-            Dogs, Cats, Confidences, classification_time = yolo_detection(img, results, args.prob_threshold)
-            detection_end = time()
-
-            outcome_image=img
+        outcome_image=img
                 
-            # cv2.imshow('The outcome', outcome_image)
-            # cv2.waitKey(0)
-        else:
-            log.info("I see nothing")
-            Confidences = 0
-            classification_time = 0
-            outcome_image=img
-            detection_end = time()
-        end = time()
+        # cv2.imshow('The outcome', outcome_image)
+        # cv2.waitKey(0)
+    else:
+        log.info("I see nothing")
+        Confidences = 0
+        classification_time = 0
+        outcome_image=img
+        detection_end = time()
+    end = time()
 
-        # Time usage
-        log.info("Classification time: {} sec".format(int(classification_time * 100)/100))
-        log.info("Detection with classification checking: {} sec".format(int((detection_end - detection_start)*100)/100))
-        log.info("Usage time: {} sec".format(int((end - start)*100)/100))
-        #print("Type any button to continue usage the God Boy Bot or type ESC to exit")
-        #cv2.waitKey(0)
-        break
+    # Time usage
+    log.info("Classification time: {} sec".format(round(classification_time, 2)))
+    log.info("Detection with classification checking: {} sec".format(round(detection_end - detection_start), 2))
+    log.info("Usage time: {} sec".format(round((end - start), 2)))
+
     # Destroy all windows
     cv2.destroyAllWindows()
     return Dogs, Cats, Confidences, outcome_image

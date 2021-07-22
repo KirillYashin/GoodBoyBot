@@ -58,7 +58,7 @@ def prepairing_classification_model():
                                               device=device, extension=cpu_extension,
                                               classes_path=classes_path)
     end = time()
-    return ie_classifier, int((end-start)*100)/100
+    return ie_classifier, round((end-start), 2)
 
 def dog_classifier(ie,researching_image, number):
     with open("..\\data\\data.json", "r", encoding="utf-8") as read_file:
@@ -77,11 +77,11 @@ def dog_classifier(ie,researching_image, number):
         for i in range(3):
             if predictions[i] > 151 and predictions[i] < 269:
                 breeds.append(ie.labels_map[predictions[i]-1])
-                confidences.append(prob[0][predictions[i]])
+                confidences.append(round(prob[0][predictions[i]], 3))
 
         predictions = [str(ie.labels_map[predictions[i]-1]) + ': '
                         + str(predictions[i]) + "  with confidence "
-                        + str(prob[0][predictions[i]]) for i in range(3)]
+                        + str(round(prob[0][predictions[i]], 3)) for i in range(3)]
         result.append(predictions)
        
         #log.info("Predictions: " + str(predictions))
@@ -97,14 +97,8 @@ def dog_classifier(ie,researching_image, number):
         ranked += 1
     #for i in range(result.shape):
     
-    '''for breed in breeds:
-        print(breed)
-        breed_info = data.get(breed)
-        for key, value in breed_info.items():
-            print('\t',key, ': ', value)'''
     
-    
-    return check, breeds, confidences, int((end-start)*100)/100
+    return check, breeds, confidences, round((end-start), 2)
 
 
 def main():
