@@ -57,7 +57,7 @@ async def photo_reaction(message):
         stream_image.seek(0)
         breed = translator(dogs[0][0])
         breed_info, image_url = get_breed_info(breed)
-        breed_info = f"Мне кажется, что это {breed}. Я уверен в этом на процентов {int(conf[0] * 10000) / 100}%.\n" \
+        breed_info = f"Мне кажется, что это {breed}. Я уверен в этом на {int(conf[0] * 10000) / 100}%.\n" \
                      f"{breed_info}"
         await message.answer_photo(image_url, caption=breed_info)
 
