@@ -13,7 +13,7 @@ from random import randint
 from PIL import Image
 
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from GBDetector import Detector, get_breed_info, translator
 # bot init
 bot = Bot(token=config.TOKEN)
@@ -26,7 +26,7 @@ async def process_help_command(message: types.Message):
     ans = "Привет, я бот, определяющий породы собак по фотографии)" \
           " Отправь мне фото и я скажу тебе кто на нем)\nEсли же просто" \
           " хочешь позалипать" + " на милых песелей, напиши команду /dog"
-    await message.answer(ans)
+    await message.answer(ans, reply_markup=ReplyKeyboardRemove())
 
 
 # bot help
@@ -34,7 +34,7 @@ async def process_help_command(message: types.Message):
 async def process_help_command(message: types.Message):
     ans = "Отправь мне фотографию собачки, а я назову ее породу)" \
           " Или если хочешь позалипать на милых песелей, напиши команду /dog"
-    await message.answer(ans)
+    await message.answer(ans, reply_markup=ReplyKeyboardRemove())
 
 
 # random doge info
@@ -45,13 +45,12 @@ async def process_help_command(message: types.Message):
         data = json.loads(file_content)
     random_dog = data[random.choice(list(data.keys()))]["Название породы"]
     breed_info, image_url = get_breed_info(random_dog)
-    await message.answer_photo(image_url, caption=f"{random_dog}.\n{breed_info}")
+    await message.answer_photo(image_url, caption=f"{random_dog}.\n{breed_info}", reply_markup=ReplyKeyboardRemove())
 
 
 # photo classification
 @dp.message_handler(content_types=['photo'])
 async def photo_reaction(message):
-    # get image from bot
     file_dct = await bot.get_file(file_id=message["photo"][-1]["file_id"])
     image = await bot.download_file(file_dct['file_path'])
 
@@ -78,10 +77,10 @@ async def photo_reaction(message):
     if len(dogs) == 0:
         if len(cats) == 0:
             ans = answers['undetected breed'][randint(0, len(answers['undetected breed'])-1)]
-            await message.answer(ans)
+            await message.answer(ans, reply_markup=ReplyKeyboardRemove())
         else:
             ans = answers['cats'][randint(0, len(answers['cats']) - 1)]
-            await message.answer(ans)
+            await message.answer(ans, reply_markup=ReplyKeyboardRemove())
     elif len(dogs) == 1:
         output_image = Image.fromarray(out)
         stream_image = BytesIO()
@@ -92,7 +91,7 @@ async def photo_reaction(message):
         breed_info, image_url = get_breed_info(breed)
         breed_info = f"Мне кажется, что это {breed}. Я уверен в этом на {int(conf[0] * 10000) / 100}%.\n" \
                      f"{breed_info}"
-        await message.answer_photo(image_url, caption=breed_info)
+        await message.answer_photo(image_url, caption=breed_info, reply_markup=ReplyKeyboardRemove())
 
     else:
         output_image = Image.fromarray(out)
@@ -118,7 +117,7 @@ async def breed_answering(message: types.Message, dog_list):
 # dog breed answer
 @dp.message_handler()
 async def dog_breed(message: types.Message):
-    breed = message.text.lower().capitalize()
+    breed = message.text.strip().lower().capitalize()
     with open('..\\data\\answers.json', "r", encoding="utf-8") as f:
         file_content = f.read()
         answers = json.loads(file_content)
