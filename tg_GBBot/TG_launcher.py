@@ -24,8 +24,8 @@ dp = Dispatcher(bot)
 @dp.message_handler(commands=['start'])
 async def process_help_command(message: types.Message):
     ans = "Привет, я бот, определяющий породы собак по фотографии)" \
-          " Отправь мне фото и я скажу тебе кто на нем)\nEсли же просто" \
-          " хочешь позалипать" + " на милых песелей, напиши команду /dog"
+          " Отправь мне фото, и я скажу тебе, кто на нём)\nEсли же просто" \
+          " хочешь позалипать" + " на милых пёселей, напиши команду /dog"
     await message.answer(ans, reply_markup=ReplyKeyboardRemove())
 
 
@@ -100,7 +100,7 @@ async def photo_reaction(message):
         output_image.save(stream_image, 'JPEG')
         stream_image.seek(0)
         button_list = await breed_answering(message, dogs)
-        await message.answer_photo(stream_image, caption='Выбери породу какого песика ты хочешь узнать)',
+        await message.answer_photo(stream_image, caption='Выбери, породу какого пёсика ты хочешь узнать)',
                                    reply_markup=button_list)
     return
 
