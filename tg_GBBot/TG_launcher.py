@@ -19,6 +19,8 @@ from GBDetector import Detector, get_breed_info, translator
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 
+# counter init
+counter = 0
 
 # start message
 @dp.message_handler(commands=['start'])
@@ -102,6 +104,9 @@ async def photo_reaction(message):
         button_list = await breed_answering(message, dogs)
         await message.answer_photo(stream_image, caption='Выбери, породу какого пёсика ты хочешь узнать)',
                                    reply_markup=button_list)
+    global counter
+    counter += 1
+    print(f"The function was used {counter} times")
     return
 
 
