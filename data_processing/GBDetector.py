@@ -47,6 +47,9 @@ class InferencEngineDetector:
         return
     
 
+counter = 0
+
+
 def get_plugin_configs(device, num_streams, num_threads):
     config_user_specified = {}
 
@@ -71,6 +74,7 @@ def get_plugin_configs(device, num_streams, num_threads):
                 else 'GPU_THROUGHPUT_AUTO'
 
     return config_user_specified
+
 
 def build_argparser():
     parser = argparse.ArgumentParser()
@@ -133,6 +137,7 @@ def yolo_detection(frame, detections, threshold):
     
     return dogs, cats, conf, (pr_time + classification_time)
 
+
 def translator(en_breed):
     with open("..\\data\\breeds_ru_to_en.json", "r", encoding="utf-8") as translator:
         breeds = json.load(translator)
@@ -140,7 +145,11 @@ def translator(en_breed):
             if val == str(en_breed):
                 return ru_breed
 
+
 def get_breed_info(ru_breed):
+    global counter
+    counter += 1
+    print(f"The function was used {counter} times")
     with open("..\\data\\breeds_ru_to_en.json", "r", encoding="utf-8") as translator:
         en_breeds = json.load(translator)
         en_breed = en_breeds.get(str(ru_breed))
