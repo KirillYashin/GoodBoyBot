@@ -147,16 +147,18 @@ def translator(en_breed):
 
 
 def get_breed_info(ru_breed):
+    log.basicConfig(format="[ %(levelname)s ] %(message)s",
+                    level=log.INFO, stream=sys.stdout)
     global counter
     counter += 1
-    print(f"The function was used {counter} times")
+    log.info(f"The function was used {counter} times")
     with open("..\\data\\breeds_ru_to_en.json", "r", encoding="utf-8") as translator:
         en_breeds = json.load(translator)
         en_breed = en_breeds.get(str(ru_breed))
         with open("..\\data\\data.json", "r", encoding="utf-8") as read_file:
             data = json.load(read_file)
             breed_info = data.get(en_breed, None)
-            if breed_info == None:
+            if not breed_info:
                 info = " "
                 link = " "
             else:
@@ -234,8 +236,10 @@ def Detector(det_image):
     cv2.destroyAllWindows()
     return Dogs, Cats, Confidences, outcome_image
 
+
 def main():
     Detection(image)
+
 
 if __name__ == '__main__':
     sys.exit(main())
